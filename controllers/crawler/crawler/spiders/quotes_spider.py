@@ -1,12 +1,17 @@
 import scrapy
 from ..items import CrawlerItem
+import sys
+sys.path.insert(0, '../../../../')
+from db import connection, cursor
 
 class QuotesSpider(scrapy.Spider):
     name = "quotes"
     start_urls = ['https://www.coingecko.com']
     
     def parse(self, response):
-        for index in response.css("body > div.container > div.gecko-table-container > div.coingecko-table > div.position-relative > div > table > tbody > tr:nth-child(n+1) > td.py-0.coin-name.cg-sticky-col.cg-sticky-third-col.px-0 > div > div.tw-flex-auto > a::attr('href')"):
+        for index in response.css("""body > div.container > div.gecko-table-container > div.coingecko-table 
+                        > div.position-relative > div > table > tbody > tr:nth-child(n+1) > td.py-0.coin-name.cg-sticky-col.cg-sticky-third-col.px-0 
+                        > div > div.tw-flex-auto > a::attr('href')"""):
              url = response.urljoin(index.get())
              yield scrapy.Request(url=url, callback=self.parseInnerPage)
         
@@ -18,7 +23,9 @@ class QuotesSpider(scrapy.Spider):
 
     def parseInnerPage(self, response):
        items = CrawlerItem()
-       name = response.css("body > div.container > div.tw-grid.tw-grid-cols-1.lg\:tw-grid-cols-3.tw-mb-4 > div.tw-col-span-3.md\:tw-col-span-2 > div > div.tw-col-span-2.md\:tw-col-span-2 > div.tw-flex.tw-text-gray-900.dark\:tw-text-white.tw-mt-2.tw-items-center > div::text").get()
+       name = response.css("""body > div.container > div.tw-grid.tw-grid-cols-1.lg\:tw-grid-cols-3.tw-mb-4 > 
+                    div.tw-col-span-3.md\:tw-col-span-2 > div > div.tw-col-span-2.md\:tw-col-span-2 > 
+                    div.tw-flex.tw-text-gray-900.dark\:tw-text-white.tw-mt-2.tw-items-center > div::text""").get()
        historicalData_raw = response.css("#navigationTab > li:nth-child(4) > a::attr('href')").get()
        historicalData = response.urljoin(historicalData_raw)
        market_raw = response.css("#navigationTabMarketsChoice::attr('href')").get()
@@ -31,4 +38,20 @@ class QuotesSpider(scrapy.Spider):
        items['historicalData'] = historicalData
        items['market'] = market
        yield items
+
+class getData(scrapy.Spider):
+    name = "rawData"
+
+    cursor.execute("select Cryptocurrency, historicalData_URL from urlMapping")
+    data = cursor.fetchall()
+    connection.commit()
+
+    def start_requests(self):
+            for index in self.data:
+                yield scrapy.Request(url=index[1], callback=self.parse)
+    
+    def parse(self, response):
+           for index in response.css("body > div.container > div.card-body > div > div > table > tbody > tr:nth-child(n+1) > td:nth-child(n+1)::text").get():
+                     print(index)
+
        
