@@ -10,5 +10,16 @@ import scrapy
 
 class CrawlerItem(scrapy.Item):
     # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    name = scrapy.Field()
+    rootURL = scrapy.Field()
+    historicalData = scrapy.Field()
+    market = scrapy.Field()
+
+class ScraperItem(scrapy.Item):
+    coin = scrapy.Field()
+    Date = scrapy.Field()
+    Market_cap = scrapy.Field()
+    Volume = scrapy.Field()
+    Open = scrapy.Field()
+    Close = scrapy.Field()
+    
