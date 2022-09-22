@@ -1,25 +1,25 @@
-{%extends "base.html"%}
+{%extends "base2.html"%}
 {% block title %}Sign Up Page{% endblock %}
 {% block content %}
   <div>
-  <form>
+  <form action={{ url_for('signup') }} method="POST">
       <div class="mb-3">
         <label for="exampleInputEmail1">Name</label>
-        <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter Name">
+        <input type="text" class="form-control" name="name" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter Name">
       </div>
       <div class="mb-3">
         <label for="exampleInputEmail1">Surname</label>
-        <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter Surname">
+        <input type="text" class="form-control" name="surname" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter Surname">
       </div>
       <div class="mb-3">
         <label for="exampleInputEmail1">Email address</label>
-        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+        <input type="email" class="form-control" name="email" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
       </div>
       <div class="mb-3">
         <label for="exampleInputPassword1">Password</label>
-        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+        <input type="password" class="form-control" name="password" id="exampleInputPassword1" placeholder="Password">
       </div>
-      <button type="submit" class="btn btn-primary">Sign Up</button>
+      <button type="submit" class="btn btn-primary">Sign up</button>
   </form> 
   </div>
 {% endblock %}
