@@ -1,9 +1,8 @@
 from app import app
 from flask import render_template, request, redirect
-import sys
-sys.path.insert(0, '../')
-from db import connection, cursor
+from .validateUsers import emailValidation, addUser, userVerification
 import bcrypt
+from passlib.hash import pbkdf2_sha256
 
 @app.route("/")
 def home():
@@ -16,36 +15,34 @@ def dashboard():
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     errors = {}
+    user = {}
     if request.method == "POST":
-        name = request.form["name"]
-        surname = request.form["surname"]
-        email = request.form["email"]
+        user['name'] = request.form["name"]
+        user['surname'] = request.form["surname"]
+        user['email'] = request.form["email"]
         password = request.form["password"]
-        salt = bcrypt.gensalt()
-        hashedPassword = bcrypt.hashpw(password.encode(), salt)
-        cursor.execute(f"""SELECT CASE WHEN EXISTS (
-                        SELECT *
-                        FROM dbo.[User]
-                        WHERE Email='%s' 
-                    )
-                    THEN CAST('True' AS VARCHAR)
-                    ELSE CAST('False' AS VARCHAR) END""" % email)
-        user_exists = cursor.fetchall()
-        connection.commit()
-        print(user_exists[0][0])
+        hashedPassword = pbkdf2_sha256.using(rounds=8000, salt_size=10).hash(password)
+        user['password'] = hashedPassword
+        user_exists = emailValidation(user['email'])
         if user_exists[0][0] == 'True':
             errors['email'] = ["A user with the specified email already exists."]
         else:
-            cursor.execute(f""" INSERT INTO dbo.[User] VALUES (%s, %s, %s, %s)""", 
-                        (email, name, surname, hashedPassword))
-            connection.commit()
+            addUser(user)
             return redirect('/dashboard')
     
     return render_template('signup.html', errors=errors)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    validate = ''
+    user = {}
     if request.method == "POST":
-        return redirect('/dashboard')
-    else:
-        return render_template('login.html')
+        user['email'] = request.form["email"]
+        user['password'] = request.form["password"]
+        user_exists = userVerification(user)
+        if user_exists == True:
+            return redirect('/dashboard')
+        else:
+            return render_template('login.html', errors=user_exists)
+    
+    return render_template('login.html')
