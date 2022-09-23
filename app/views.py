@@ -15,6 +15,7 @@ def dashboard():
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
+    errors = {}
     if request.method == "POST":
         name = request.form["name"]
         surname = request.form["surname"]
@@ -22,13 +23,25 @@ def signup():
         password = request.form["password"]
         salt = bcrypt.gensalt()
         hashedPassword = bcrypt.hashpw(password.encode(), salt)
-        
-        cursor.execute(f""" INSERT INTO dbo.[User] VALUES (%s, %s, %s, %s)""", 
-                     (email, name, surname, hashedPassword))
+        cursor.execute(f"""SELECT CASE WHEN EXISTS (
+                        SELECT *
+                        FROM dbo.[User]
+                        WHERE Email='%s' 
+                    )
+                    THEN CAST('True' AS VARCHAR)
+                    ELSE CAST('False' AS VARCHAR) END""" % email)
+        user_exists = cursor.fetchall()
         connection.commit()
-        return redirect('/dashboard')
-    else:
-       return render_template('signup.html')
+        print(user_exists[0][0])
+        if user_exists[0][0] == 'True':
+            errors['email'] = ["A user with the specified email already exists."]
+        else:
+            cursor.execute(f""" INSERT INTO dbo.[User] VALUES (%s, %s, %s, %s)""", 
+                        (email, name, surname, hashedPassword))
+            connection.commit()
+            return redirect('/dashboard')
+    
+    return render_template('signup.html', errors=errors)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
