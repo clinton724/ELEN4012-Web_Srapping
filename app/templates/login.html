@@ -1,18 +1,34 @@
 {%extends "base2.html"%}
 {% block title %}Sign Up Page{% endblock %}
 {% block content %}
-  <div>
-  <form action={{ url_for('login') }} method="POST">
-      <li>{{error}}</li>
+  <h1>Login</h1>
+  {% for message in get_flashed_messages() %} 
+      <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+  {% endfor %}
+  <div class="shadow p-3 mb-5 bg-body rounded">
+    <form action={{ url_for('login') }} method="POST">
+      {{ form.hidden_tag() }}
       <div class="mb-3">
-        <label for="exampleInputEmail1">Email address</label>
-        <input type="email" name="email" class="form-control" required id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-control") }}
       </div>
       <div class="mb-3">
-        <label for="exampleInputPassword1">Password</label>
-        <input type="password" name="password" class="form-control" required id="exampleInputPassword1" placeholder="Password">
+        {{ form.password.label(class="form-label") }}
+        {{ form.password(class="form-control") }}
       </div>
-      <button type="submit" class="btn btn-primary">Log In</button>
-  </form> 
+      <div class="mb-3">
+        {{ form.submit(class="btn btn-secondary")}}
+      </div>
+    </form> 
   </div>
+<style>
+  .error{
+    font-size: smaller;
+    color: red;
+  }
+</style>
 {% endblock %}

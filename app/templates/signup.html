@@ -1,29 +1,37 @@
 {%extends "base2.html"%}
 {% block title %}Sign Up Page{% endblock %}
 {% block content %}
-  <div>
-  <form action={{ url_for('signup') }} method="POST">
+  <h1>Create Account</h1>
+  {% for message in get_flashed_messages() %} 
+      <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+  {% endfor %}
+  <div class="shadow p-3 mb-5 bg-body rounded">
+    <form action={{ url_for('signup') }} method="POST">
+      {{ form.hidden_tag() }}
       <div class="mb-3">
-        <label for="exampleInputEmail1">Name</label>
-        <input type="text" class="form-control" name="name" required minlength="2"  autocomplete="off" value="" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter Name">
+        {{ form.name.label(class="form-label") }}
+        {{ form.name(class="form-control") }}
       </div>
       <div class="mb-3">
-        <label for="exampleInputEmail1">Surname</label>
-        <input type="text" class="form-control" name="surname" required minlength="2" value="" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter Surname">
+        {{ form.surname.label(class="form-label") }}
+        {{ form.surname(class="form-control") }}
       </div>
       <div class="mb-3">
-        <label for="exampleInputEmail1">Email address</label>
-        <input type="email" class="form-control" name="email" required value="" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
-        {% for e in errors["email"] %} 
-           <li class="error">{{e}}</li>
-        {% endfor %}
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-control") }}
       </div>
       <div class="mb-3">
-        <label for="exampleInputPassword1">Password</label>
-        <input type="password" class="form-control" name="password" required id="exampleInputPassword1" placeholder="Password">
+        {{ form.password.label(class="form-label") }}
+        {{ form.password(class="form-control") }}
       </div>
-      <button type="submit" class="btn btn-primary">Sign up</button>
-  </form> 
+      <div class="mb-3">
+        {{ form.submit(class="btn btn-secondary")}}
+      </div>
+    </form> 
   </div>
 <style>
   .error{
