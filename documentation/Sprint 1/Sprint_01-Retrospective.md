@@ -31,3 +31,5 @@ velocity = StoriesDoneSp - storiesLeftSp
 ### Things to continue doing:
 * Plan and write the documentation for each sprint together.
 * Continue assiting each other when there are challenges.
+
+### We aim to include a user story map on the next print because the user interface will be implemented.
