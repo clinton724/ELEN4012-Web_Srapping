@@ -14,8 +14,8 @@ As a developer, I should create a database that will store all tables relating t
 
 ### sprint velocity:
 velocity = StoriesDoneSp - storiesLeftSp
-         =  13-0
-= 13
+         = 13-0
+         = 13
 
 ## Retrospect
 ### challenges:
