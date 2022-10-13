@@ -8,12 +8,10 @@ from .validateUsers import emailValidation, addUser, userVerification, passwordV
 import bcrypt
 from passlib.hash import pbkdf2_sha256
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import create_engine
 
 app.config['SECRET_KEY'] = 'mynameis'
 server = 'designdb.database.windows.net'
 database = 'rawData'
-Driver = 'ODBC Driver 17 for SQL Server'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'mssql+pymssql://designdb-admin@designdb:Design2022@{server}/{database}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -22,23 +20,17 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 #login_manager.login_view = "login"
 
-@login_manager.user_loader
-def load_user(user_id):
-     return User.query.get(int(user_id))
-
 #Create Model
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     Email = db.Column(db.String(50), nullable=False, unique=True)
     FirstName = db.Column(db.String(50), nullable=False)
     Surname = db.Column(db.String(50), nullable=False)
-    Password = db.Column(db.String(100), nullable=False)
+    Password = db.Column(db.String(100), nullable=False) 
 
-    def __init__(self):
-            self.Email = Email
-            self.FirstName = FirstName
-            self.Surname = Surname
-            self.Password = Password
+@login_manager.user_loader
+def load_user(user_id):
+     return User.query.get(int(user_id))
 
 #Create a form class
 class SignupForm(FlaskForm):
@@ -51,13 +43,14 @@ class SignupForm(FlaskForm):
 class LoginForm(FlaskForm):
     email = EmailField('Email', validators=[InputRequired(), Email()], render_kw={"placeholder": "Enter email"})
     password = PasswordField('Password', validators=[InputRequired()], render_kw={"placeholder": "Enter paswword"})
-    submit = SubmitField('Sign up')
+    submit = SubmitField('Login')
 
-@app.route("/")
+@app.route("/", methods=['GET', 'POST'])
 def home():
     return render_template('welcome.html')
 
-@app.route("/dashboard")
+@app.route("/dashboard", methods=['GET', 'POST'])
+@login_required
 def dashboard():
     return render_template('index.html')
 
@@ -90,16 +83,12 @@ def signup():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    email = None
-    password = None
     form = LoginForm()
     if form.validate_on_submit():
-        if userVerification(form.email.data) == 'True':
+        user = User.query.filter_by(Email=form.email.data).first()
+        if user:
             if passwordVerification(form.password.data, form.email.data) == True:
-                #new_user = User(Email=form.email.data, Password=form.password.data)
-                #login_user(new_user)
-                form.email.data = ''
-                form.password.data = ''
+                login_user(user)
                 return redirect('/dashboard')
             else:
                 flash("You have entered an incorrect password.")  
