@@ -3,16 +3,16 @@ from .forms import CreateUserForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .db import connection, cursor
+#from .db import connection, cursor
 
 # Create your views here.
 def home(request):
     return render(request, 'home.html', {})
 
 def signup(request):
-    cursor.execute("select * from dbo.[User] FOR JSON AUTO")
-    data = cursor.fetchall()
-    print(data)
+    #cursor.execute("select * from dbo.[User] FOR JSON AUTO")
+    #data = cursor.fetchall()
+    #print(data)
     if request.user.is_authenticated:
         return redirect('dashboard')
     else:
