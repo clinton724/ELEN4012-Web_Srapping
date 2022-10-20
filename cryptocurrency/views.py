@@ -63,8 +63,23 @@ def loginPage(request):
 
 @login_required(login_url='login')
 def dashboard(request):
-    return render(request, 'index.html', {})
+    cursor.execute("select Cryptocurrency from dbo.[urlMapping]")
+    data = cursor.fetchall()
+    columns = ["cryptocurrency"]
+    df = pd.DataFrame(data, columns=columns)
+    df = df['cryptocurrency'].values.tolist()
+    return render(request, 'index.html', {'data': df})
 
+@login_required(login_url='login')
+def coins(request):
+    cursor.execute("select Cryptocurrency from dbo.[urlMapping]")
+    data = cursor.fetchall()
+    columns = ["cryptocurrency"]
+    df = pd.DataFrame(data, columns=columns)
+    df = df['cryptocurrency'].values.tolist()
+    return render(request, 'coins.html', {'data': df})
+
+@login_required(login_url='login')
 def analytics(request):
     def str_to_datetime(s):
         split = s.split('-')
