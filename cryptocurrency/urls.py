@@ -7,6 +7,6 @@ urlpatterns = [
     path('signup', views.signup, name="signup"),
     path('dashboard', views.dashboard, name='dashboard'),
     path('logout', views.logout_user, name='logout'),
-    path('analytics', views.analytics, name='analytics'),
+    path('analytics/<coin>/', views.analytics, name='analytics'),
     path('coins', views.coins, name='coins')
 ]

@@ -19,10 +19,18 @@
         <li class="nav-item">
           <a class="nav-link" href="{% url 'coins' %}">Coins</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'logout' %}">Log out</a>
-        </li>
       </ul>
-      <span  class="user"><i class="bi bi-person"></i>{{request.user}}</span>
+      <span  class="user">
+        <div class="dropdown">
+          <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Account
+          </button>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item">  {{request.user}} </a>
+            <a class="dropdown-item" href="{% url 'logout' %}">Log out</a>
+            <a class="dropdown-item" href="#">Help</a>
+          </div>
+        </div>
+      </span>
     </div>
   </nav>

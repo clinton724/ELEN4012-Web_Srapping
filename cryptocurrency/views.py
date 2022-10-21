@@ -80,7 +80,7 @@ def coins(request):
     return render(request, 'coins.html', {'data': df})
 
 @login_required(login_url='login')
-def analytics(request):
+def analytics(request, coin):
     def str_to_datetime(s):
         split = s.split('-')
         year, month, day = int(split[0]), int(split[1]), int(split[2])
@@ -151,7 +151,8 @@ def analytics(request):
 
 
     #Getting the dataset from the database
-    cursor.execute("select * from HistoricalData where Cryptocurrency = 'Bitcoin (BTC)'")
+    print(coin)
+    cursor.execute("""select * from HistoricalData where Cryptocurrency = '%s'"""% (coin))
     data = cursor.fetchall()
     connection.commit()
     columns = ["cryptocurrency", "date", "market_cap", "Volume", "Open", "Close"]
@@ -208,7 +209,7 @@ def analytics(request):
     earlystopping = callbacks.EarlyStopping(monitor="val_loss", 
                             mode="min", patience=5,
                             restore_best_weights=True)
-    history = model.fit(X_train, y_train, validation_data=(X_val, y_val), batch_size = 1,epochs=100, callbacks=[earlystopping])
+    history = model.fit(X_train, y_train, validation_data=(X_val, y_val), batch_size = 1,epochs=5, callbacks=[earlystopping])
     training_loss  = history.history['loss']
     validation_loss = history.history['val_loss']
     epoch_count = range(1, len(training_loss)+1)
@@ -232,7 +233,7 @@ def analytics(request):
     graphic = [None]*7
     params = {'title': 'Cryptocurrency vs Date',
           'xlabel': 'Date',
-          'ylabel': 'Price',
+          'ylabel': f'{coin} Price',
           'legend': []}
     graphic[0] = get_plot({'plot-1': {
                              'x':df.index, 
