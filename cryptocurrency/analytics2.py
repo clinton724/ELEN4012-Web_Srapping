@@ -24,7 +24,7 @@ def str_to_datetime(s):
 def df_to_windowed_df(dataframe, first_date_str, last_date_str, n=3):
   first_date = str_to_datetime(first_date_str)
   last_date  = str_to_datetime(last_date_str)
-
+  print(type(first_date_str), " ", type(first_date))
   target_date = first_date
   
   dates = []

@@ -1,14 +1,14 @@
 {%extends "base.html"%}
-{% block title %}Home page{% endblock %}
+{% block title %}All coins{% endblock %}
 {% block content %}
     {% load static %}
     <h2>All coins</h2>
     <input class="form-control" type="text" id="filter" placeholder="Search for a coin">
     <br>
     <ul class="list-group" id="names">
-       {% for index in data %}
+       {% for index in context.itertuples %}
            <li class="list-group-item" style="font-size:15px">
-               <a href="">{{ index }}</a>
+               <a href="{% url 'analytics' coin=index.id %}">{{ index.cryptocurrency }}</a>
            </li>
        {% endfor %}
     </ul>

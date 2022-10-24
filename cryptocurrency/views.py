@@ -4,19 +4,14 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-import datetime as dt
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
-from sklearn.svm import SVR
 from tensorflow.keras.models import Sequential
 from tensorflow .keras.optimizers import Adam
 from tensorflow.keras import layers
 from keras import callbacks
 from copy import deepcopy
 from .db import connection, cursor
-from .utils import get_plot
+from .utils import get_plot, str_to_datetime, df_to_windowed_df, windowed_df_to_date_X_y
 
 # Create your views here.
 def home(request):
@@ -63,96 +58,29 @@ def loginPage(request):
 
 @login_required(login_url='login')
 def dashboard(request):
-    cursor.execute("select Cryptocurrency from dbo.[urlMapping]")
+    cursor.execute("select id, Cryptocurrency from dbo.[urlMapping]")
     data = cursor.fetchall()
-    columns = ["cryptocurrency"]
+    columns = ["id", "cryptocurrency"]
     df = pd.DataFrame(data, columns=columns)
-    df = df['cryptocurrency'].values.tolist()
-    return render(request, 'index.html', {'data': df})
+    return render(request, 'index.html', {'context': df})
 
 @login_required(login_url='login')
 def coins(request):
-    cursor.execute("select Cryptocurrency from dbo.[urlMapping]")
+    cursor.execute("select id, Cryptocurrency from dbo.[urlMapping]")
     data = cursor.fetchall()
-    columns = ["cryptocurrency"]
+    columns = ["id", "cryptocurrency"]
     df = pd.DataFrame(data, columns=columns)
-    df = df['cryptocurrency'].values.tolist()
-    return render(request, 'coins.html', {'data': df})
+    return render(request, 'coins.html', {'context': df})
+
 
 @login_required(login_url='login')
 def analytics(request, coin):
-    def str_to_datetime(s):
-        split = s.split('-')
-        year, month, day = int(split[0]), int(split[1]), int(split[2])
-        return dt.datetime(year=year, month=month, day=day)
-
-    #Windowing function
-    def df_to_windowed_df(dataframe, first_date_str, last_date_str, n=3):
-        first_date = str_to_datetime(first_date_str)
-        last_date  = str_to_datetime(last_date_str)
-
-        target_date = first_date
-        
-        dates = []
-        X, Y = [], []
-        
-        last_time = False
-        while True:
-            df_subset = dataframe.loc[:target_date].tail(n+1)
-            
-            if len(df_subset) != n+1:
-                print(f'Error: Window of size {n} is too large for date {target_date}')
-                return
-
-            values = df_subset['Close'].to_numpy()
-            x, y = values[:-1], values[-1]
-
-            dates.append(target_date)
-            X.append(x)
-            Y.append(y)
-
-            next_week = dataframe.loc[target_date:target_date+dt.timedelta(days=7)]
-            next_datetime_str = str(next_week.head(2).tail(1).index.values[0])
-            next_date_str = next_datetime_str.split('T')[0]
-            year_month_day = next_date_str.split('-')
-            year, month, day = year_month_day
-            next_date = dt.datetime(day=int(day), month=int(month), year=int(year))
-            
-            if last_time:
-             break
-            
-            target_date = next_date
-
-            if target_date == last_date:
-                last_time = True
-            
-        ret_df = pd.DataFrame({})
-        ret_df['Target Date'] = dates
-        
-        X = np.array(X)
-        for i in range(0, n):
-            X[:, i]
-            ret_df[f'Target-{n-i}'] = X[:, i]
-        
-        ret_df['Target'] = Y
-
-        return ret_df
-
-    def windowed_df_to_date_X_y(windowed_dataframe):
-        #Conversion of dataframe to numpy array
-        df_as_np = windowed_dataframe.to_numpy()
-        #Getting the dates from the windowed dataframe
-        dates = df_as_np[:,0]
-        #Getting the middle matrix for x
-        middle_matrix = df_as_np[:, 1:-1]
-        X = middle_matrix.reshape((len(dates), middle_matrix.shape[1], 1))
-        Y = df_as_np[:, -1]
-        return dates, X.astype(np.float32), Y.astype(np.float32)
-
-
     #Getting the dataset from the database
-    print(coin)
-    cursor.execute("""select * from HistoricalData where Cryptocurrency = '%s'"""% (coin))
+    cursor.execute("""select Cryptocurrency from urlMapping where id = '%s'"""% (coin))
+    data = cursor.fetchone()
+    connection.commit()
+    check = data[0]
+    cursor.execute("""select * from HistoricalData where Cryptocurrency = '%s'"""% (check))
     data = cursor.fetchall()
     connection.commit()
     columns = ["cryptocurrency", "date", "market_cap", "Volume", "Open", "Close"]
@@ -162,7 +90,6 @@ def analytics(request, coin):
     start = df.iloc[3]['date']
     end = df.iloc[30]['date']
 
-    future_days = 1
     df = df[['date', 'Close']]
 
     #Converting all strings in the 'date' column to datetime datatype
@@ -173,13 +100,11 @@ def analytics(request, coin):
 
     #Converting the dataframe to a supervised learning problem becuase we are using the LSTM model
     windowed_df = df_to_windowed_df(df, start, end, n=3)
-    print(windowed_df)
     #Converting the windowed dataframe into a numpy array so that we can feed into the tensorflow model
     #X is a 3 dimensional vector that consists of previous values to the target
     #y is the target
     #date is the target date
     dates, X, y = windowed_df_to_date_X_y(windowed_df)
-    print(dates.shape, X.shape, y.shape)
 
     #Split the data into train, validation and testing partitions
     #The training will train the model, the validation wil help train the model 
@@ -231,9 +156,9 @@ def analytics(request, coin):
     #--------------------------------PLOTS----------------------------------
     #Plot of Cryptocurrency price vs time
     graphic = [None]*7
-    params = {'title': 'Cryptocurrency vs Date',
+    params = {'title': 'Actual Scraped Data',
           'xlabel': 'Date',
-          'ylabel': f'{coin} Price',
+          'ylabel': 'Price',
           'legend': []}
     graphic[0] = get_plot({'plot-1': {
                              'x':df.index, 
@@ -249,10 +174,10 @@ def analytics(request, coin):
                     'x': dates_test, 
                     'y': y_test}
         }
-    params = {'title': 'Cryptocurrency vs Date',
+    params = {'title': 'Windowed Observation model',
           'xlabel': 'Date',
           'ylabel': 'Price',
-          'legend': ['Train', 'Validation', 'Test']}
+          'legend': ['Train (80%)', 'Validation (10%)', 'Test (10%)']}
     graphic[1] = get_plot(x, params)
     ########################################################
     x = {'plot-1': {
@@ -277,7 +202,7 @@ def analytics(request, coin):
                     'x': recursive_dates, 
                     'y': recursive_predictions}
         }
-    params = {'title': 'Cryptocurrency vs Date',
+    params = {'title': 'Predictions and Observations',
           'xlabel': 'Date',
           'ylabel': 'Price',
           'legend': ['Training Predictions', 
@@ -301,7 +226,46 @@ def analytics(request, coin):
           'ylabel': 'Loss',
           'legend': ['Training Loss', 'Test Loss']}
     graphic[3] = get_plot(x, params)
-    return render(request, 'analytics.html', {'graphic': graphic})
+    ################################################################
+    x = {'plot-1': {
+                    'x':dates_train, 
+                    'y':train_predictions },
+         'plot-2': {
+                    'x':dates_train,
+                    'y':y_train}
+        }
+    params = {'title': 'Training dataset (80%)',
+          'xlabel': 'Price',
+          'ylabel': 'Date',
+          'legend': ['Training Predictions', 'Training_Observations']}
+    graphic[4] = get_plot(x, params)
+    #################################################################
+    x = {'plot-1': {
+                    'x':dates_val, 
+                    'y':val_predictions },
+         'plot-2': {
+                    'x':dates_val,
+                    'y':y_val}
+        }
+    params = {'title': 'Validation dataset (10%)',
+          'xlabel': 'Price',
+          'ylabel': 'Date',
+          'legend': ['Validation Predictions', 'Validation Observations']}
+    graphic[5] = get_plot(x, params)
+    ##################################################################
+    x = {'plot-1': {
+                    'x':dates_test, 
+                    'y':test_predictions },
+         'plot-2': {
+                    'x':dates_test,
+                    'y':y_test}
+        }
+    params = {'title': 'Testing dataset (10%)',
+          'xlabel': 'Price',
+          'ylabel': 'Date',
+          'legend': ['Testing Predictions', 'Testing Observations']}
+    graphic[6] = get_plot(x, params)
+    return render(request, 'analytics.html', {'graphic': graphic, 'coin': check+" "+'Visuals'})
 
 @login_required(login_url='login')
 def logout_user(request):

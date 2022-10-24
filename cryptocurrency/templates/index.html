@@ -1,15 +1,15 @@
 {%extends "base.html"%}
-{% block title %}Home page{% endblock %}
+{% block title %}Dashboard{% endblock %}
 {% block content %}
  <div class="row row-cols-1 row-cols-md-2">
-    {% for i in data %}
+    {% for index in context.itertuples %}
         <div class="col mb-4">
                 <div class="card" style="width: 18rem;">
                      <img class="card-img-top" src="https://x7d4c5z5.stackpathcdn.com/wp-content/uploads/tc/2021/09/cryptocurrency-1.jpg">
                      <div class="card-body">
-                     <a href="#" class="card-title">{{ i|safe }}</a>
+                     <a href="#" class="card-title">{{ index.cryptocurrency }}</a>
                      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                     <a href="{% url 'analytics' coin=i %}" class="btn btn-primary">View Analytics</a>
+                     <a href="{% url 'analytics' coin=index.id %}" class="btn btn-primary">View Analytics</a>
                      </div>
                 </div>
         </div>
