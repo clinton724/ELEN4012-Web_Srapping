@@ -24,7 +24,6 @@ def str_to_datetime(s):
 def df_to_windowed_df(dataframe, first_date_str, last_date_str, n=3):
   first_date = str_to_datetime(first_date_str)
   last_date  = str_to_datetime(last_date_str)
-  print(type(first_date_str), " ", type(first_date))
   target_date = first_date
   
   dates = []
@@ -106,13 +105,11 @@ df.index = df.pop('date')
 
 #Converting the dataframe to a supervised learning problem becuase we are using the LSTM model
 windowed_df = df_to_windowed_df(df, start, end, n=3)
-print(windowed_df)
 #Converting the windowed dataframe into a numpy array so that we can feed into the tensorflow model
 #X is a 3 dimensional vector that consists of previous values to the target
 #y is the target
 #date is the target date
 dates, X, y = windowed_df_to_date_X_y(windowed_df)
-print(dates.shape, X.shape, y.shape)
 
 #Split the data into train, validation and testing partitions
 #The training will train the model, the validation wil help train the model 
@@ -123,6 +120,9 @@ print(dates.shape, X.shape, y.shape)
 
 q_80 = int(len(dates)*.8)
 q_90 = int(len(dates)*.9)
+print(len(dates))
+print(q_80)
+print(q_90)
 dates_train, X_train, y_train = dates[:q_80], X[:q_80], y[:q_80]
 dates_val, X_val, y_val = dates[q_80:q_90], X[q_80:q_90], y[q_80:q_90]
 dates_test, X_test, y_test = dates[q_90:], X[q_90:], y[q_90:]
@@ -148,20 +148,44 @@ validation_loss = history.history['val_loss']
 epoch_count = range(1, len(training_loss)+1)
 train_predictions = model.predict(X_train).flatten()
 test_predictions = model.predict(X_test).flatten()
-
+   
 val_predictions = model.predict(X_val).flatten()
+'''
 recursive_predictions = []
 recursive_dates = np.concatenate([dates_val, dates_test])
+print(recursive_dates)
+p = 0
+print(X_train[-1])
+last_window = deepcopy(X_train[-1])
 for target_date in recursive_dates:
-    last_window = deepcopy(X_train[-1])
     next_prediction = model.predict(np.array([last_window])).flatten()
+    print("next prediction: ", next_prediction)
     recursive_predictions.append(next_prediction)
-    new_window = list(last_window[1:])
-    new_window.append(next_prediction)
-    new_window = np.array(new_window)
-    last_window = new_window
-
+    np.roll(last_window, -1)
+    print(last_window)
+    last_window[-1] = next_prediction
 #--------------------------------PLOTS----------------------------------
+plt.figure('Figure 1')
+plt.plot(dates_train, train_predictions)
+plt.plot(dates_train, y_train)
+plt.plot(dates_val, val_predictions)
+plt.plot(dates_val, y_val)
+plt.plot(dates_test, test_predictions)
+plt.plot(dates_test, y_test)
+plt.plot(recursive_dates, recursive_predictions)
+plt.legend(['Training Predictions', 
+            'Training_Observations',
+            'Validation Predictions', 
+            'Validation Observations',
+            'Testing Predictions', 
+            'Testing Observations',
+            'Recursive predictions'])
+plt.xlabel("Date")
+plt.ylabel("Crypto price")
+plt.grid()
+plt.xticks(rotation=25, horizontalalignment='right')
+plt.show()
+'''
 
 #Plot of Cryptocurrency price vs time
 plt.figure('Figure 1')
@@ -183,7 +207,7 @@ plt.ylabel("Crypto price")
 plt.grid()
 plt.xticks(rotation=25, horizontalalignment='right')
 #####
-
+'''
 #
 plt.figure('Figure 3')
 plt.plot(dates_train, train_predictions)
@@ -199,13 +223,13 @@ plt.legend(['Training Predictions',
             'Validation Observations',
             'Testing Predictions', 
             'Testing Observations',
-            'Recursive Predictions'])
+            'Recursive predictions'])
 plt.xlabel("Date")
 plt.ylabel("Crypto price")
 plt.grid()
 plt.xticks(rotation=25, horizontalalignment='right')
 #####
-
+'''
 #
 plt.figure('Figure 4')
 plt.plot(epoch_count, training_loss, 'r--')
@@ -217,7 +241,7 @@ plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.grid()
 #####
-
+'''
 #
 plt.figure('Figure 5')
 plt.plot(dates_train, train_predictions)
@@ -254,6 +278,6 @@ plt.xlabel("Date")
 plt.ylabel("Crypto price")
 plt.grid()
 plt.xticks(rotation=25, horizontalalignment='right')
+'''
 plt.show()
-
 
