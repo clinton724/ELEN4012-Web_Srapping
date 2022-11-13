@@ -2,7 +2,5 @@
 {% block title %}Analytics page{% endblock %}
 {% block content %}
 <h2>{{ coin }}</h2>
-{% for i in graphic %}
- <img src="data:image/png;base64,{{ i|safe }}">
-{% endfor %}
+ <img src="data:image/png;base64,{{ graphic|safe }}">
 {% endblock %}

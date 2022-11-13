@@ -30,20 +30,20 @@ for i in range(5,len(train_data)):
     x_train_data.append(train_data[i-5:i,0])
     y_train_data.append(train_data[i,0])
  
-    # 6. Converting the training x and y values to numpy arrays
-    x_train_data1, y_train_data1 = np.array(x_train_data), np.array(y_train_data)
- 
-    # 7. Reshaping training s and y data to make the calculations easier
-    x_train_data2 = np.reshape(x_train_data1, (x_train_data1.shape[0],x_train_data1.shape[1],1))
+# 6. Converting the training x and y values to numpy arrays
+x_train_data1, y_train_data1 = np.array(x_train_data), np.array(y_train_data)
 
-    model = Sequential()
-    model.add(LSTM(units=50, return_sequences=True, input_shape=(x_train_data2.shape[1],1)))
-    model.add(LSTM(units=50, return_sequences=False))
-    model.add(Dense(units=25))
-    model.add(Dense(units=1))
+# 7. Reshaping training s and y data to make the calculations easier
+x_train_data2 = np.reshape(x_train_data1, (x_train_data1.shape[0],x_train_data1.shape[1],1))
 
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    model.fit(x_train_data2, y_train_data1, batch_size=1, epochs=1)
+model = Sequential()
+model.add(LSTM(units=50, return_sequences=True, input_shape=(x_train_data2.shape[1],1)))
+model.add(LSTM(units=50, return_sequences=False))
+model.add(Dense(units=25))
+model.add(Dense(units=1))
+
+model.compile(optimizer='adam', loss='mean_squared_error')
+model.fit(x_train_data2, y_train_data1, batch_size=1, epochs=1)
 
 # 1. Creating a dataset for testing
 test_data = scaled_data[training_data_len - 5: , : ]
