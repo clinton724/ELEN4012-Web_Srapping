@@ -79,5 +79,3 @@ plt.legend(['Actual', 'Validation', 'Prediction'])
 plt.grid()
 plt.show()
 
-df['Open'].to_csv('original.csv', index=True)
-valid_linear[['Open', 'Predictions']].to_csv('other.csv')
